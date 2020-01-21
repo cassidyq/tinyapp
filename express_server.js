@@ -2,9 +2,10 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
+
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
@@ -32,10 +33,18 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// create new short and long URL pair
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.post("/urls/", (req, res) => {
+  let newShortURL = generateRandomString();
+  urlDatabase[newShortURL] = req.body.longURL;
+  res.redirect(`/urls/${newShortURL}`);
+});
+
+// get short:long URL pair
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -44,24 +53,21 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b><body><html>\n");
-});
-
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.post("/urls", (req, res) => {
-  let newShortURL = generateRandomString();
-  urlDatabase[newShortURL] = req.body.longURL;
-  console.log(urlDatabase);
-  res.redirect(`/urls/${newShortURL}`);
-});
-
+//delete URL
 app.post(`/urls/:shortURL/delete`, (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls/");
+});
+
+//edit URL
+app.post("/urls/:shortURL", (req, res) => {
+  const { shortURL } = req.params;
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect("/urls/");
+});
+
+app.get("*", (req, res) => {
+  res.redirect("/");
 });
 
 app.listen(PORT, () => {
