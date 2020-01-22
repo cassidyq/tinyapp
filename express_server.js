@@ -42,6 +42,14 @@ function emailExists(email) {
   return Object.values(users).indexOf(email) > -1;
 }
 
+function getUserByEmail(email) {
+  for (const key in users) {
+    if (users[key].email === email) {
+      return key;
+    }
+  }
+}
+
 //register a new account
 app.get("/register", (req, res) => {
   const userId = req.cookies.user_id;
@@ -84,26 +92,23 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  for (const key in users) {
-    console.log(key);
-    const user = users[key];
-    console.log(user);
-    if (user.email === email) {
-      // user was found
-      if (user.password === password) {
-        // password was correct
-        res.cookie("user_id", key);
-        res.redirect("/urls");
-      } else {
-        //password did not match
-        res.status(403);
-        res.send("403 Status Code: Incorrect password");
-      }
+  const userId = getUserByEmail(email);
+
+  if (email === users[userId].email) {
+    // user was found
+    if (password === users[userId].password) {
+      // password was correct
+      res.cookie("user_id", userId);
+      res.redirect("/urls");
     } else {
-      //user was not found
+      //password did not match
       res.status(403);
-      res.send("403 Status Code: Email not found");
+      res.send("403 Status Code: Incorrect password");
     }
+  } else {
+    //user was not found
+    res.status(403);
+    res.send("403 Status Code: Email not found");
   }
 });
 
@@ -120,7 +125,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  console.log(req.cookies);
+  // console.log(req.cookies);
   const userId = req.cookies.user_id;
   let templateVars = {
     user: users[userId],
