@@ -16,14 +16,14 @@ const urlDatabase = {
 
 const users = {
   userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    id: "user1",
+    email: "user@test.com",
+    password: "123"
   },
   user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
+    id: "user2",
+    email: "user2@test.com",
+    password: "456"
   }
 };
 
@@ -139,11 +139,15 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// create new short and long URL pair
+// create new short and long URL pair. Can only be accessed by registered user
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies.user_id;
-  let templateVars = { user: users[userId] };
-  res.render("urls_new", templateVars);
+  if (userId) {
+    let templateVars = { user: users[userId] };
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.post("/urls", (req, res) => {
@@ -152,7 +156,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShortURL}`);
 });
 
-// read url
+// display shortURL
 app.get("/urls/:shortURL", (req, res) => {
   const userId = req.cookies.user_id;
   let templateVars = {
