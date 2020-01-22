@@ -15,12 +15,12 @@ const urlDatabase = {
 };
 
 const users = {
-  userRandomID: {
+  user1: {
     id: "user1",
     email: "user@test.com",
     password: "123"
   },
-  user2RandomID: {
+  user2: {
     id: "user2",
     email: "user2@test.com",
     password: "456"
@@ -53,6 +53,16 @@ function getUserByEmail(email) {
       return key;
     }
   }
+}
+
+function urlsForUser(id) {
+  let urls = {};
+  for (const key in urlDatabase) {
+    if (urlDatabase[key].id === id) {
+      urls[key] = urlDatabase[key].longURL;
+    }
+  }
+  return urls;
 }
 
 //register a new account
@@ -107,12 +117,12 @@ app.post("/login", (req, res) => {
       res.cookie("user_id", userId);
       res.redirect("/urls");
     } else {
-      //password did not match
+      //Error: password did not match
       res.status(403);
       res.send("403 Status Code: Incorrect password");
     }
   } else {
-    //user was not found
+    //Error: user was not found
     res.status(403);
     res.send("403 Status Code: Email not found");
   }
@@ -132,11 +142,16 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const userId = req.cookies.user_id;
-  let templateVars = {
-    user: users[userId],
-    urls: urlDatabase
-  };
-  res.render("urls_index", templateVars);
+  if (userId) {
+    let templateVars = {
+      user: users[userId],
+      urls: urlsForUser(userId) //filter for urls owned by userId
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    //not logged in and need to register or login first
+    res.redirect("/login");
+  }
 });
 
 // create new short and long URL pair. Can only be accessed by registered user
