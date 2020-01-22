@@ -44,8 +44,9 @@ function emailExists(email) {
 
 //register a new account
 app.get("/register", (req, res) => {
+  const userId = req.cookies.user_id;
   let templateVars = {
-    user: req.cookies.name,
+    user: users[userId],
     urls: urlDatabase
   };
   console.log(templateVars);
@@ -96,14 +97,13 @@ app.get("/urls", (req, res) => {
     user: users[userId],
     urls: urlDatabase
   };
-  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
 // create new short and long URL pair
 app.get("/urls/new", (req, res) => {
-  let templateVars = { [req.cookies.name]: users[req.cookies.name] };
-  console.log(templateVars);
+  const userId = req.cookies.user_id;
+  let templateVars = { user: users[userId] };
   res.render("urls_new", templateVars);
 });
 
@@ -115,8 +115,9 @@ app.post("/urls/", (req, res) => {
 
 // read url
 app.get("/urls/:shortURL", (req, res) => {
+  const userId = req.cookies.user_id;
   let templateVars = {
-    [req.cookies.name]: users[req.cookies.name],
+    user: users[userId],
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]
   };
