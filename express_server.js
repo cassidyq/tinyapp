@@ -58,16 +58,20 @@ function getUserByEmail(email) {
 function urlsForUser(id) {
   let urls = {};
   for (const key in urlDatabase) {
-    if (urlDatabase[key].id === id) {
+    if (urlDatabase[key]["userID"] === id) {
       urls[key] = urlDatabase[key].longURL;
     }
   }
   return urls;
 }
 
+function getUserFromRequest(req) {
+  return req.cookies["user_id"];
+}
+
 //register a new account
 app.get("/register", (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = getUserFromRequest(req);
   let templateVars = {
     user: users[userId],
     urls: urlDatabase
@@ -97,7 +101,7 @@ app.post("/register", (req, res) => {
 
 //login
 app.get("/login", (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = getUserFromRequest(req);
   let templateVars = {
     user: users[userId],
     urls: urlDatabase
@@ -141,7 +145,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = getUserFromRequest(req);
   if (userId) {
     let templateVars = {
       user: users[userId],
@@ -156,9 +160,12 @@ app.get("/urls", (req, res) => {
 
 // create new short and long URL pair. Can only be accessed by registered user
 app.get("/urls/new", (req, res) => {
-  const userId = req.cookies.user_id;
+  const userId = getUserFromRequest(req);
   if (userId) {
-    let templateVars = { user: users[userId] };
+    let templateVars = {
+      user: users[userId],
+      urls: urlsForUser(userId)
+    };
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login");
@@ -166,20 +173,35 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  let newShortURL = generateRandomString();
-  urlDatabase[newShortURL] = req.body.longURL;
+  const newShortURL = generateRandomString();
+  const userId = getUserFromRequest(req);
+  urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: userId };
   res.redirect(`/urls/${newShortURL}`);
 });
 
-// display shortURL
+// display given shortURL with longURL pair
 app.get("/urls/:shortURL", (req, res) => {
-  const userId = req.cookies.user_id;
-  let templateVars = {
-    user: users[userId],
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL]
-  };
-  res.render("urls_show", templateVars);
+  const userId = getUserFromRequest(req);
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[req.params.shortURL]["longURL"];
+  //check is user is logged in
+  if (userId) {
+    //check if url is owned by userId
+    if (shortURL in urlsForUser(userId)) {
+      let templateVars = {
+        user: users[userId],
+        shortURL,
+        longURL
+      };
+      res.render("urls_show", templateVars);
+    } else {
+      res.status(403);
+      res.send("403 Status Code: URL does not belong to you");
+    }
+  } else {
+    //not logged in and need to register or login first
+    res.redirect("/login");
+  }
 });
 
 //delete URL
