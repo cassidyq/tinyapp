@@ -55,8 +55,7 @@ app.get("/register", (req, res) => {
 // add new user to the global user object with given email and password and a new random ID
 app.post("/register", (req, res) => {
   const userId = generateRandomString();
-  const email = req.body.email;
-  const password = req.body.password;
+  const { email, password } = req.body;
   if (emailExists(email)) {
     // send back a response with the 400 status code
     res.status(400);
@@ -84,27 +83,33 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  const userId = req.cookies.user_id;
-  if (!emailExists(email)) {
-    // send back a response with the 403 status code
-    res.status(403);
-    res.send("403 Status Code: Email not found");
-  }
-  if (password !== users.userId.password) {
-    // send back a response with the 400 status code
-    res.status(403);
-    res.send("403 Status Code: Incorrect password");
-  } else {
-    res.cookie("user_id", userId);
-    res.redirect("/urls");
+  const { email, password } = req.body;
+  for (const key in users) {
+    console.log(key);
+    const user = users[key];
+    console.log(user);
+    if (user.email === email) {
+      // user was found
+      if (user.password === password) {
+        // password was correct
+        res.cookie("user_id", key);
+        res.redirect("/urls");
+      } else {
+        //password did not match
+        res.status(403);
+        res.send("403 Status Code: Incorrect password");
+      }
+    } else {
+      //user was not found
+      res.status(403);
+      res.send("403 Status Code: Email not found");
+    }
   }
 });
 
 //logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -115,6 +120,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  console.log(req.cookies);
   const userId = req.cookies.user_id;
   let templateVars = {
     user: users[userId],
@@ -130,7 +136,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.post("/urls/", (req, res) => {
+app.post("/urls", (req, res) => {
   let newShortURL = generateRandomString();
   urlDatabase[newShortURL] = req.body.longURL;
   res.redirect(`/urls/${newShortURL}`);
