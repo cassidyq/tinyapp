@@ -206,8 +206,14 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //delete URL
 app.post(`/urls/:shortURL/delete`, (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls/");
+  const userId = getUserFromRequest(req);
+  if (userId) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls/");
+  } else {
+    res.status(403);
+    res.send("403 Status Code: Unauthorized to delete this URL\n");
+  }
 });
 
 //edit URL
