@@ -39,12 +39,17 @@ function generateRandomString() {
 }
 
 function emailExists(email) {
-  return Object.values(users).indexOf(email) > -1;
+  for (const key in users) {
+    if (users[key]["email"] === email) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function getUserByEmail(email) {
   for (const key in users) {
-    if (users[key].email === email) {
+    if (users[key]["email"] === email) {
       return key;
     }
   }
@@ -94,7 +99,8 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const userId = getUserByEmail(email);
 
-  if (email === users[userId].email) {
+  // if (email === users[userId].email) {
+  if (emailExists(email)) {
     // user was found
     if (password === users[userId].password) {
       // password was correct
@@ -125,7 +131,6 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  // console.log(req.cookies);
   const userId = req.cookies.user_id;
   let templateVars = {
     user: users[userId],
