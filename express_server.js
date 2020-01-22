@@ -49,7 +49,7 @@ app.get("/register", (req, res) => {
     user: users[userId],
     urls: urlDatabase
   };
-  console.log(templateVars);
+
   res.render("register", templateVars);
 });
 // add new user to the global user object with given email and password and a new random ID
@@ -74,6 +74,15 @@ app.post("/register", (req, res) => {
 });
 
 //login
+app.get("/login", (req, res) => {
+  const userId = req.cookies.user_id;
+  let templateVars = {
+    user: users[userId],
+    urls: urlDatabase
+  };
+  res.render("login", templateVars);
+});
+
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect("/urls");
