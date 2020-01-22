@@ -54,7 +54,7 @@ app.get("/register", (req, res) => {
 });
 // add new user to the global user object with given email and password and a new random ID
 app.post("/register", (req, res) => {
-  const user_id = generateRandomString();
+  const userId = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
   if (emailExists(email)) {
@@ -67,8 +67,8 @@ app.post("/register", (req, res) => {
     res.status(400);
     res.send("400 Status Code: Empty Email and/or Password");
   } else {
-    users[user_id] = Object.assign({ id: user_id }, req.body);
-    res.cookie("user_id", user_id);
+    users[userId] = Object.assign({ id: userId }, req.body);
+    res.cookie("user_id", userId);
     res.redirect("/urls");
   }
 });
@@ -84,8 +84,22 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  const email = req.body.email;
+  const password = req.body.password;
+  const userId = req.cookies.user_id;
+  if (!emailExists(email)) {
+    // send back a response with the 403 status code
+    res.status(403);
+    res.send("403 Status Code: Email not found");
+  }
+  if (password !== users.userId.password) {
+    // send back a response with the 400 status code
+    res.status(403);
+    res.send("403 Status Code: Incorrect password");
+  } else {
+    res.cookie("user_id", userId);
+    res.redirect("/urls");
+  }
 });
 
 //logout
