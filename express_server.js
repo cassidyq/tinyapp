@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 
 app.set("view engine", "ejs");
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -79,27 +78,28 @@ app.get("/register", (req, res) => {
 
   res.render("register", templateVars);
 });
-// add new user to the global user object with given email and password and a new random ID
+// store newly registered user's id, email, and password
 app.post("/register", (req, res) => {
   const userId = generateRandomString();
   const { email, password } = req.body;
   if (emailExists(email)) {
-    // send back a response with the 400 status code
+    // if email already exists send back 400 response
     res.status(400);
     res.send("400 Status Code: Email already exists");
   }
   if (email === "" || password === "") {
-    // send back a response with the 400 status code
+    //if email or password fields are empty send back 400 response
     res.status(400);
     res.send("400 Status Code: Empty Email and/or Password");
   } else {
+    // otherwise save new user's info and direct them to /urls
     users[userId] = Object.assign({ id: userId }, req.body);
     res.cookie("user_id", userId);
     res.redirect("/urls");
   }
 });
 
-//login
+//login page
 app.get("/login", (req, res) => {
   const userId = getUserFromRequest(req);
   let templateVars = {
@@ -108,12 +108,11 @@ app.get("/login", (req, res) => {
   };
   res.render("login", templateVars);
 });
-
+//log user in
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const userId = getUserByEmail(email);
-
-  // if (email === users[userId].email) {
+  // check that user exists in database
   if (emailExists(email)) {
     // user was found
     if (password === users[userId].password) {
@@ -132,18 +131,19 @@ app.post("/login", (req, res) => {
   }
 });
 
-//logout
+//log user out
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/login");
 });
 
-// redirect from short URL to the assigned long URL
+// redirects anyone from short URL to the assigned long URL
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
 
+// display urls for authorized user
 app.get("/urls", (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
@@ -153,12 +153,12 @@ app.get("/urls", (req, res) => {
     };
     res.render("urls_index", templateVars);
   } else {
-    //not logged in and need to register or login first
+    //not logged, redirect to register or login first
     res.redirect("/login");
   }
 });
 
-// create new short and long URL pair. Can only be accessed by registered user
+// create new short/long URL pair. Can only be accessed by registered user
 app.get("/urls/new", (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
@@ -172,6 +172,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+// when a new url is made store information in that users database
 app.post("/urls", (req, res) => {
   const newShortURL = generateRandomString();
   const userId = getUserFromRequest(req);
@@ -179,12 +180,11 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShortURL}`);
 });
 
-// display given shortURL with longURL pair
+// display given shortURL with longURL pair for authorized user
 app.get("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
-  //check is user is logged in
   if (userId) {
     //check if url is owned by userId
     if (shortURL in urlsForUser(userId)) {
@@ -204,7 +204,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
-//delete URL
+//delete URL for authorized user
 app.post(`/urls/:shortURL/delete`, (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
@@ -216,7 +216,7 @@ app.post(`/urls/:shortURL/delete`, (req, res) => {
   }
 });
 
-//edit URL
+//edit URL for authorized user
 app.post("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
