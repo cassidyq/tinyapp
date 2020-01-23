@@ -177,10 +177,15 @@ app.get("/urls/new", (req, res) => {
 
 // when a new url is made store information in that users database
 app.post("/urls", (req, res) => {
-  const newShortURL = generateRandomString();
   const userId = getUserFromRequest(req);
-  urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: userId };
-  res.redirect(`/urls/${newShortURL}`);
+  if (userId) {
+    const newShortURL = generateRandomString();
+    urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: userId };
+    res.redirect(`/urls/${newShortURL}`);
+  } else {
+    res.status(403);
+    res.send("403 Status Code: Must sign in to create short URLs\n");
+  }
 });
 
 // display given shortURL with longURL pair for authorized user
@@ -211,9 +216,14 @@ app.get("/urls/:shortURL", (req, res) => {
 app.post(`/urls/:shortURL/delete`, (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
-    delete urlDatabase[req.params.shortURL];
-    res.redirect("/urls/");
+    console.log(req.params.shortURL);
+    //check if user owns the URL
+    if (req.params.shortURL in urlsForUser(userId)) {
+      delete urlDatabase[req.params.shortURL];
+      res.redirect("/urls/");
+    }
   } else {
+    //user does not own the URL or isn't logged in
     res.status(403);
     res.send("403 Status Code: Unauthorized to delete this URL\n");
   }
