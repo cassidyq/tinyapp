@@ -53,10 +53,10 @@ function emailExists(email) {
   return false;
 }
 
-function getUserByEmail(email) {
-  for (const key in users) {
-    if (users[key]["email"] === email) {
-      return key;
+function getUserByEmail(email, database) {
+  for (const user in database) {
+    if (database[user]["email"] === email) {
+      return user;
     }
   }
 }
@@ -121,7 +121,7 @@ app.get("/login", (req, res) => {
 //log user in
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const userId = getUserByEmail(email);
+  const userId = getUserByEmail(email, users);
   // check that user exists in database
   if (emailExists(email)) {
     // user was found
