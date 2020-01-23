@@ -105,10 +105,7 @@ app.post("/register", (req, res) => {
 //login page
 app.get("/login", (req, res) => {
   const userId = getUserFromRequest(req);
-  let templateVars = {
-    user: users[userId],
-    urls: urlDatabase
-  };
+  let templateVars = { user: users[userId] };
   res.render("login", templateVars);
 });
 
@@ -137,7 +134,7 @@ app.post("/login", (req, res) => {
 //log user out
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/login");
+  res.redirect("/urls");
 });
 
 // redirects anyone from short URL to the assigned long URL
@@ -193,6 +190,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
+  console.log(longURL);
   if (userId) {
     //check if url is owned by userId
     if (shortURL in urlsForUser(userId)) {
