@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 
@@ -10,19 +11,20 @@ app.use(cookieParser());
 
 const urlDatabase = {
   b2xVn2: { longURL: "http://www.lighthouselabs.ca", userID: "user1" },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "user1" }
+  "9sm5xK": { longURL: "http://www.google.com", userID: "user1" },
+  d6Ty2l: { longURL: "http://www.pawdopt.com", userID: "user2" }
 };
 
 const users = {
   user1: {
     id: "user1",
     email: "user@test.com",
-    password: "123"
+    hashedPassword: bcrypt.hashSync("123", 10)
   },
   user2: {
     id: "user2",
     email: "user2@test.com",
-    password: "456"
+    hashedPassword: bcrypt.hashSync("456", 10)
   }
 };
 
@@ -68,20 +70,21 @@ function getUserFromRequest(req) {
   return req.cookies["user_id"];
 }
 
-//register a new account
+//registration page for new users
 app.get("/register", (req, res) => {
   const userId = getUserFromRequest(req);
   let templateVars = {
     user: users[userId],
     urls: urlDatabase
   };
-
   res.render("register", templateVars);
 });
+
 // store newly registered user's id, email, and password
 app.post("/register", (req, res) => {
   const userId = generateRandomString();
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   if (emailExists(email)) {
     // if email already exists send back 400 response
     res.status(400);
@@ -108,6 +111,7 @@ app.get("/login", (req, res) => {
   };
   res.render("login", templateVars);
 });
+
 //log user in
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
@@ -115,7 +119,7 @@ app.post("/login", (req, res) => {
   // check that user exists in database
   if (emailExists(email)) {
     // user was found
-    if (password === users[userId].password) {
+    if (bcrypt.compareSync(password, users[userId].hashedPassword)) {
       // password was correct
       res.cookie("user_id", userId);
       res.redirect("/urls");
