@@ -3,11 +3,16 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["user_id"]
+  })
+);
 
 const urlDatabase = {
   b2xVn2: { longURL: "http://www.lighthouselabs.ca", userID: "user1" },
@@ -67,7 +72,7 @@ function urlsForUser(id) {
 }
 
 function getUserFromRequest(req) {
-  return req.cookies["user_id"];
+  return req.session.user_id;
 }
 
 //registration page for new users
@@ -98,7 +103,7 @@ app.post("/register", (req, res) => {
       email,
       hashedPassword
     });
-    res.cookie("user_id", userId);
+    req.session.user_id = userId;
     res.redirect("/urls");
   }
 });
@@ -122,7 +127,7 @@ app.post("/login", (req, res) => {
     // user was found
     if (bcrypt.compareSync(password, users[userId].hashedPassword)) {
       // password was correct
-      res.cookie("user_id", userId);
+      req.session.user_id = userId;
       res.redirect("/urls");
     } else {
       //Error: password did not match
@@ -137,7 +142,7 @@ app.post("/login", (req, res) => {
 
 //log user out
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
