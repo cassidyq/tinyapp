@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 
+const { getUserByEmail } = require("./helpers");
+
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
@@ -51,14 +53,6 @@ function emailExists(email) {
     }
   }
   return false;
-}
-
-function getUserByEmail(email, database) {
-  for (const user in database) {
-    if (database[user]["email"] === email) {
-      return user;
-    }
-  }
 }
 
 function urlsForUser(id) {
