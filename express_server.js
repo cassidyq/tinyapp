@@ -190,7 +190,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
-  console.log(longURL);
+
   if (userId) {
     //check if url is owned by userId
     if (shortURL in urlsForUser(userId)) {
