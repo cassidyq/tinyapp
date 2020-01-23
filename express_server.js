@@ -140,7 +140,7 @@ app.post("/logout", (req, res) => {
 
 // redirect from short URL to the assigned long URL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
 
@@ -218,9 +218,15 @@ app.post(`/urls/:shortURL/delete`, (req, res) => {
 
 //edit URL
 app.post("/urls/:shortURL", (req, res) => {
-  const { shortURL } = req.params;
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect("/urls/");
+  const userId = getUserFromRequest(req);
+  if (userId) {
+    const { shortURL } = req.params;
+    urlDatabase[shortURL] = { longURL: req.body["longURL"], userID: userId };
+    res.redirect("/urls/");
+  } else {
+    res.status(403);
+    res.send("403 Status Code: Unauthorized to edit this URL\n");
+  }
 });
 
 //catchall for errors when routing incorrect urls
