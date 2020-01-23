@@ -12,22 +12,26 @@
     >
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" style="justify-content: space-between" navbarNavAltMarkup">
+    <div
+      class="collapse navbar-collapse"
+      style="justify-content: space-between"
+      id="navbarNavAltMarkup"
+    >
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New TinyURL</a>
       </div>
       <% if(user){ %>
-        <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">
-          <span>Logged In As: <%= user.email %></span>
-          <button class="btn btn-outline-default my-2 my-sm-0" type="submit">Logout</button>
-        </form>
-        
+      <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">
+        <span class="mr-2">Logged In As: <%= user.email %></span>
+        <button class="btn btn-outline-dark" type="submit">Logout</button>
+      </form>
+
       <% } else { %>
-        <div class="navbar-nav">
-          <a class="nav-item nav-link" href="/login">Login</a>
-          <a class="nav-item nav-link" href="/register">Register</a>
-        </div>
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/login">Login</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
+      </div>
       <% } %>
     </div>
   </nav>
