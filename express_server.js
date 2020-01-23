@@ -73,10 +73,7 @@ function getUserFromRequest(req) {
 //registration page for new users
 app.get("/register", (req, res) => {
   const userId = getUserFromRequest(req);
-  let templateVars = {
-    user: users[userId],
-    urls: urlDatabase
-  };
+  let templateVars = { user: users[userId] };
   res.render("register", templateVars);
 });
 
@@ -96,7 +93,11 @@ app.post("/register", (req, res) => {
     res.send("400 Status Code: Empty Email and/or Password");
   } else {
     // otherwise save new user's info and direct them to /urls
-    users[userId] = Object.assign({ id: userId }, req.body);
+    users[userId] = Object.assign({
+      id: userId,
+      email,
+      hashedPassword
+    });
     res.cookie("user_id", userId);
     res.redirect("/urls");
   }
@@ -129,9 +130,8 @@ app.post("/login", (req, res) => {
       res.send("403 Status Code: Incorrect password");
     }
   } else {
-    //Error: user was not found
-    res.status(403);
-    res.send("403 Status Code: Email not found");
+    //Error: user was not found redirect to registration page
+    res.redirect("/register");
   }
 });
 
