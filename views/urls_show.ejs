@@ -23,7 +23,11 @@
       </div>
       <div class="card-footer">
         <h3>Edit</h3>
-        <form class="form-group" action="/urls/<%= shortURL %>" method="POST">
+        <form
+          class="form-group"
+          action="/urls/<%= shortURL %>?_method=PUT"
+          method="POST"
+        >
           <label for="longURL">New long URL:</label>
           <input
             class="col-sm-10"

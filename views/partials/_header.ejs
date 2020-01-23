@@ -22,7 +22,11 @@
         <a class="nav-item nav-link" href="/urls/new">Create New TinyURL</a>
       </div>
       <% if(user){ %>
-      <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">
+      <form
+        class="form-inline my-2 my-lg-0"
+        action="/logout?_method=PUT"
+        method="POST"
+      >
         <span class="mr-2">Logged in as: <%= user.email %>!</span>
         <button class="btn btn-outline-dark" type="submit">Logout</button>
       </form>

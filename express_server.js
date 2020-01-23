@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
+const methodOverride = require("method-override");
 const {
   generateRandomString,
   emailExists,
@@ -13,6 +14,7 @@ const {
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(methodOverride("_method"));
 app.use(
   cookieSession({
     name: "session",
@@ -86,7 +88,7 @@ app.get("/login", (req, res) => {
 });
 
 // Log user in
-app.post("/login", (req, res) => {
+app.put("/login", (req, res) => {
   const { email, password } = req.body;
   const userId = getUserByEmail(email, users);
   // Check that user exists in database
@@ -108,7 +110,7 @@ app.post("/login", (req, res) => {
 });
 
 // Log user out
-app.post("/logout", (req, res) => {
+app.put("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
@@ -149,7 +151,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 // When a new url is made store information in that users database
-app.post("/urls", (req, res) => {
+app.put("/urls", (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
     const newShortURL = generateRandomString();
@@ -187,7 +189,7 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 // Delete URL for authorized user
-app.post(`/urls/:shortURL/delete`, (req, res) => {
+app.delete("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
     console.log(req.params.shortURL);
@@ -204,12 +206,12 @@ app.post(`/urls/:shortURL/delete`, (req, res) => {
 });
 
 // Edit URL for authorized user
-app.post("/urls/:shortURL", (req, res) => {
+app.put("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
     const { shortURL } = req.params;
     urlDatabase[shortURL] = { longURL: req.body["longURL"], userID: userId };
-    res.redirect("/urls/");
+    res.redirect("/urls");
   } else {
     res.status(403);
     res.send("403 Status Code: Unauthorized to edit this URL\n");
