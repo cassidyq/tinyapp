@@ -12,7 +12,11 @@
   </head>
 
   <body>
-    <%- include ('partials/_header') %>
+    <%- include ('partials/_header') %> <% if ( error !== null) { %>
+    <div class="alert alert-danger" role="alert">
+      <%= error %>
+    </div>
+    <% } %>
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -32,7 +36,8 @@
           <input
             class="col-sm-10"
             id="longURL"
-            type="text"
+            type="url"
+            title="Include http://"
             name="longURL"
             placeholder="<%= longURL %>"
             style="display: inline-block; width: 300px; margin: 1em"

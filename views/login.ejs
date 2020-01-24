@@ -19,6 +19,12 @@
 
   <body>
     <%- include ('partials/_header') %>
+
+    <% if ( error !== null) { %>
+      <div class="alert alert-danger" role="alert">
+        <%= error %> Please login or <a href="/register" class="alert-link">register</a> a new account.
+      </div>
+    <% } %>
     <div class="card text-left">
       <div class="card-header"></div>
       <div class="card-body">

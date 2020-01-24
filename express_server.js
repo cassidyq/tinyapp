@@ -50,7 +50,7 @@ function getUserFromRequest(req) {
 // Registration page
 app.get("/register", (req, res) => {
   const userId = getUserFromRequest(req);
-  let templateVars = { user: users[userId] };
+  let templateVars = { user: users[userId], error: null };
   res.render("register", templateVars);
 });
 
@@ -61,13 +61,8 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   if (emailExists(email, users)) {
     // If email already exists send back 400 response
-    res.status(400);
-    res.send("400 Status Code: Email already exists");
-  }
-  if (email === "" || password === "") {
-    // If email or password fields are empty send back 400 response
-    res.status(400);
-    res.send("400 Status Code: Empty Email and/or Password");
+    let templateVars = { user: users[userId], error: "Email already exists." };
+    res.render("register", templateVars);
   } else {
     // Otherwise save new user's info and direct them to /urls
     users[userId] = Object.assign({
@@ -83,11 +78,14 @@ app.post("/register", (req, res) => {
 // Login page
 app.get("/login", (req, res) => {
   const userId = getUserFromRequest(req);
-  let templateVars = { user: users[userId] };
+  let templateVars = {
+    user: users[userId],
+    error: null
+  };
   res.render("login", templateVars);
 });
 
-// Log user in
+// Verify login cr
 app.put("/login", (req, res) => {
   const { email, password } = req.body;
   const userId = getUserByEmail(email, users);
@@ -100,19 +98,20 @@ app.put("/login", (req, res) => {
       res.redirect("/urls");
     } else {
       // Error: password did not match
-      res.status(403);
-      res.send("403 Status Code: Incorrect password");
+      let templateVars = { user: users[userId], error: "Wrong password." };
+      res.render("login", templateVars);
     }
   } else {
-    // Error: user was not found redirect to registration page
-    res.redirect("/register");
+    // Error: user was not found
+    let templateVars = { user: users[userId], error: "Wrong email." };
+    res.render("login", templateVars);
   }
 });
 
 // Log user out
 app.put("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 // Redirects anyone from short URL to the assigned long URL
@@ -127,12 +126,14 @@ app.get("/urls", (req, res) => {
   if (userId) {
     let templateVars = {
       user: users[userId],
-      urls: getUrlsForUser(userId, urlDatabase) //filter for urls owned by userId
+      urls: getUrlsForUser(userId, urlDatabase), //filter for urls owned by userId
+      error: null
     };
     res.render("urls_index", templateVars);
   } else {
     // Not logged, redirect to register or login first
-    res.redirect("/login");
+    let templateVars = { user: users[userId], error: "Cannot access page." };
+    res.render("login", templateVars);
   }
 });
 
@@ -142,11 +143,16 @@ app.get("/urls/new", (req, res) => {
   if (userId) {
     let templateVars = {
       user: users[userId],
-      urls: getUrlsForUser(userId, urlDatabase)
+      urls: getUrlsForUser(userId, urlDatabase),
+      error: null
     };
     res.render("urls_new", templateVars);
   } else {
-    res.redirect("/login");
+    let templateVars = {
+      user: users[userId],
+      error: "Must be logged in to access page."
+    };
+    res.render("login", templateVars);
   }
 });
 
@@ -159,7 +165,7 @@ app.put("/urls", (req, res) => {
     res.redirect(`/urls/${newShortURL}`);
   } else {
     res.status(403);
-    res.send("403 Status Code: Must sign in to create short URLs\n");
+    res.send("403 Status Code: Must sign in to create new TinyURLs\n");
   }
 });
 
@@ -168,19 +174,26 @@ app.get("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[req.params.shortURL]["longURL"];
-
+  // Check if user is logged in
   if (userId) {
     // Check if url is owned by userId
     if (shortURL in getUrlsForUser(userId, urlDatabase)) {
       let templateVars = {
         user: users[userId],
         shortURL,
-        longURL
+        longURL,
+        error: null
       };
       res.render("urls_show", templateVars);
     } else {
-      res.status(403);
-      res.send("403 Status Code: URL does not belong to you");
+      let templateVars = {
+        user: users[userId],
+        urls: getUrlsForUser(userId, urlDatabase),
+        error: "URL does not belong to you."
+      };
+      res.render("urls_index", templateVars);
+      // res.status(403);
+      // res.send("403 Status Code: URL does not belong to you");
     }
   } else {
     // User not logged in and need to register or login first

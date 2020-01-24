@@ -17,7 +17,12 @@
     <title>TinyApp</title>
   </head>
   <body>
-    <%- include ('partials/_header') %>
+    <%- include ('partials/_header') %> <% if ( error !== null) { %>
+    <div class="alert alert-danger" role="alert">
+      <%= error %> Please login or
+      <a href="/register" class="alert-link">register</a> a new account.
+    </div>
+    <% } %>
     <main style="margin: 1em;">
       <h3>My URLs</h3>
       <table class="table">
