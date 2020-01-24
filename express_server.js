@@ -42,15 +42,12 @@ const users = {
   }
 };
 
-// function getUserFromRequest(req) {
-//   return req.session.user_id;
-// }
-
 // Routing
 
 // Registration page
 app.get("/register", (req, res) => {
   const userId = getUserFromRequest(req);
+  console.log(userId);
   if (userId) {
     res.redirect("/urls");
   } else {
@@ -214,7 +211,6 @@ app.get("/urls/:shortURL", (req, res) => {
 app.delete("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   if (userId) {
-    console.log(req.params.shortURL);
     // Check if user owns the URL
     if (req.params.shortURL in getUrlsForUser(userId, urlDatabase)) {
       delete urlDatabase[req.params.shortURL];
@@ -242,7 +238,7 @@ app.put("/urls/:shortURL", (req, res) => {
 
 // Catchall for errors when routing incorrect urls
 app.get("*", (req, res) => {
-  res.redirect("/");
+  res.redirect("/login");
 });
 
 app.listen(PORT, () => {
