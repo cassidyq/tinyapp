@@ -109,7 +109,6 @@ app.put("/login", (req, res) => {
     }
   } else {
     // Error: user was not found
-    res.writeHead(404, "User Was Not Found");
     let templateVars = { user: users[userId], error: "Wrong email." };
     res.render("login", templateVars);
   }
@@ -136,7 +135,7 @@ app.get("/u/:shortURL", (req, res) => {
       urls: getUrlsForUser(userId, urlDatabase),
       error: "This short URL does not exist."
     };
-    res.writeHead(404, "URL Not Found");
+
     res.render("urls_index", templateVars);
   }
 });
