@@ -47,7 +47,6 @@ const users = {
 // Registration page
 app.get("/register", (req, res) => {
   const userId = getUserFromRequest(req);
-  console.log(userId);
   if (userId) {
     res.redirect("/urls");
   } else {
@@ -127,7 +126,6 @@ app.get("/u/:shortURL", (req, res) => {
   // Check if short URL exists in database
   if (req.params.shortURL in urlDatabase) {
     // If it does redirect to long URL
-    console.log("shortURL exists: ", req.params.shortURL);
     const longURL = urlDatabase[req.params.shortURL]["longURL"];
     res.redirect(longURL);
   } else {
@@ -195,32 +193,44 @@ app.put("/urls", (req, res) => {
   }
 });
 
-// Display given shortURL with longURL pair for authorized user
+// Get shortURL and longURL pair for authorized user
 app.get("/urls/:shortURL", (req, res) => {
   const userId = getUserFromRequest(req);
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[req.params.shortURL]["longURL"];
-  // Check if user is logged in
   if (userId) {
-    // Check if url is owned by userId
-    if (shortURL in getUrlsForUser(userId, urlDatabase)) {
-      let templateVars = {
-        user: users[userId],
-        shortURL,
-        longURL,
-        error: null
-      };
-      res.render("urls_show", templateVars);
+    // If user is logged in
+    if (shortURL in urlDatabase) {
+      // and short URL exists in database
+      const longURL = urlDatabase[shortURL]["longURL"];
+      if (shortURL in getUrlsForUser(userId, urlDatabase)) {
+        // and url is owned by userId
+        const templateVars = {
+          user: users[userId],
+          shortURL,
+          longURL,
+          error: null
+        };
+        res.render("urls_show", templateVars);
+      } else {
+        // User does not own URL
+        const templateVars = {
+          user: users[userId],
+          urls: getUrlsForUser(userId, urlDatabase),
+          error: "You do not have access to that short URL."
+        };
+        res.render("urls_index", templateVars);
+      }
     } else {
-      let templateVars = {
+      // Short URL does not exist
+      const templateVars = {
         user: users[userId],
         urls: getUrlsForUser(userId, urlDatabase),
-        error: "You do not have access to that short URL."
+        error: "This short URL does not exist."
       };
       res.render("urls_index", templateVars);
     }
   } else {
-    // User not logged in and need to register or login first
+    // User is not logged in
     let templateVars = { user: users[userId], error: "Cannot access page." };
     res.render("login", templateVars);
   }
