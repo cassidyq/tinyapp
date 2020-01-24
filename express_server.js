@@ -63,7 +63,6 @@ app.post("/register", (req, res) => {
   email = email.toLowerCase();
   const hashedPassword = bcrypt.hashSync(password, 10);
   if (emailExists(email, users)) {
-    // If email already exists send back 400 response
     let templateVars = { user: users[userId], error: "Email already exists." };
     res.render("register", templateVars);
   } else {
@@ -81,11 +80,15 @@ app.post("/register", (req, res) => {
 // Login page
 app.get("/login", (req, res) => {
   const userId = getUserFromRequest(req);
-  let templateVars = {
-    user: users[userId],
-    error: null
-  };
-  res.render("login", templateVars);
+  if (userId) {
+    res.redirect("/urls");
+  } else {
+    let templateVars = {
+      user: users[userId],
+      error: null
+    };
+    res.render("login", templateVars);
+  }
 });
 
 // Verify login credentials
@@ -107,6 +110,7 @@ app.put("/login", (req, res) => {
     }
   } else {
     // Error: user was not found
+    res.writeHead(404, "User Was Not Found");
     let templateVars = { user: users[userId], error: "Wrong email." };
     res.render("login", templateVars);
   }
@@ -120,8 +124,23 @@ app.put("/logout", (req, res) => {
 
 // Redirects anyone from short URL to the assigned long URL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]["longURL"];
-  res.redirect(longURL);
+  // Check if short URL exists in database
+  if (req.params.shortURL in urlDatabase) {
+    // If it does redirect to long URL
+    console.log("shortURL exists: ", req.params.shortURL);
+    const longURL = urlDatabase[req.params.shortURL]["longURL"];
+    res.redirect(longURL);
+  } else {
+    // If it doesn't exist, send status code and redirect to /urls
+    const userId = getUserFromRequest(req);
+    let templateVars = {
+      user: users[userId],
+      urls: getUrlsForUser(userId, urlDatabase),
+      error: "This short URL does not exist."
+    };
+    res.writeHead(404, "URL Not Found");
+    res.render("urls_index", templateVars);
+  }
 });
 
 // Display urls for authorized user
