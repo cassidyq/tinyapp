@@ -36,9 +36,14 @@ function getUrlsForUser(id, database) {
   return urls;
 }
 
+function getUserFromRequest(req) {
+  return req.session.user_id;
+}
+
 module.exports = {
   generateRandomString,
   emailExists,
   getUserByEmail,
-  getUrlsForUser
+  getUrlsForUser,
+  getUserFromRequest
 };

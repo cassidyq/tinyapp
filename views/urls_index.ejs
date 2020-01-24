@@ -19,8 +19,7 @@
   <body>
     <%- include ('partials/_header') %> <% if ( error !== null) { %>
     <div class="alert alert-danger" role="alert">
-      <%= error %> Please login or
-      <a href="/register" class="alert-link">register</a> a new account.
+      <%= error %>
     </div>
     <% } %>
     <main style="margin: 1em;">
@@ -37,7 +36,7 @@
         <tbody>
           <% for(let url in urls) { %>
           <tr>
-            <td><%= url %></td>
+            <td><a href="/urls/<%= url %>"><%= url %></a></td>
             <td><%= urls[url] %></td>
             <td>
               <form action="/urls/<%= url %>">

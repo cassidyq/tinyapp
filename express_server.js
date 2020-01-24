@@ -9,7 +9,8 @@ const {
   generateRandomString,
   emailExists,
   getUserByEmail,
-  getUrlsForUser
+  getUrlsForUser,
+  getUserFromRequest
 } = require("./helpers");
 
 app.set("view engine", "ejs");
@@ -41,23 +42,28 @@ const users = {
   }
 };
 
-function getUserFromRequest(req) {
-  return req.session.user_id;
-}
+// function getUserFromRequest(req) {
+//   return req.session.user_id;
+// }
 
 // Routing
 
 // Registration page
 app.get("/register", (req, res) => {
   const userId = getUserFromRequest(req);
-  let templateVars = { user: users[userId], error: null };
-  res.render("register", templateVars);
+  if (userId) {
+    res.redirect("/urls");
+  } else {
+    let templateVars = { user: users[userId], error: null };
+    res.render("register", templateVars);
+  }
 });
 
 // Store newly registered users' id, email, and password
 app.post("/register", (req, res) => {
   const userId = generateRandomString();
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+  email = email.toLowerCase();
   const hashedPassword = bcrypt.hashSync(password, 10);
   if (emailExists(email, users)) {
     // If email already exists send back 400 response
@@ -85,9 +91,10 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
-// Verify login cr
+// Verify login credentials
 app.put("/login", (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
+  email = email.toLowerCase();
   const userId = getUserByEmail(email, users);
   // Check that user exists in database
   if (emailExists(email, users)) {
@@ -132,7 +139,10 @@ app.get("/urls", (req, res) => {
     res.render("urls_index", templateVars);
   } else {
     // Not logged, redirect to register or login first
-    let templateVars = { user: users[userId], error: "Cannot access page." };
+    let templateVars = {
+      user: users[userId],
+      error: "Must be logged in to access page."
+    };
     res.render("login", templateVars);
   }
 });
@@ -189,15 +199,14 @@ app.get("/urls/:shortURL", (req, res) => {
       let templateVars = {
         user: users[userId],
         urls: getUrlsForUser(userId, urlDatabase),
-        error: "URL does not belong to you."
+        error: "You do not have access to that short URL."
       };
       res.render("urls_index", templateVars);
-      // res.status(403);
-      // res.send("403 Status Code: URL does not belong to you");
     }
   } else {
     // User not logged in and need to register or login first
-    res.redirect("/login");
+    let templateVars = { user: users[userId], error: "Cannot access page." };
+    res.render("login", templateVars);
   }
 });
 
